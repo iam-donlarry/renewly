@@ -423,6 +423,82 @@ details[open] .caret-icon {
     letter-spacing: -0.02em;
 }
 
+/* --- Connected KPI Bar Card with Watermark Fading Icon --- */
+.kpi-bar-container {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+}
+
+.kpi-bar-item {
+    position: relative !important;
+    padding: 1.5rem 1.75rem !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    min-height: 115px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+.kpi-bar-container [class*="col-"]:not(:last-child) .kpi-bar-item {
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+@media (max-width: 767.98px) {
+    .kpi-bar-container [class*="col-"]:not(:last-child) .kpi-bar-item {
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+}
+
+.kpi-bar-title {
+    font-size: 0.725rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #64748b !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.kpi-bar-value {
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+.kpi-bar-subtext {
+    font-size: 0.75rem !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+svg.kpi-fading-icon, i.kpi-fading-icon, .kpi-fading-icon {
+    position: absolute !important;
+    right: -15px !important;
+    bottom: -22px !important;
+    width: 115px !important;
+    height: 115px !important;
+    opacity: 0.14 !important;
+    color: #12b1b0 !important;
+    stroke: #12b1b0 !important;
+    stroke-width: 1.5px !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+}
+
 /* --- 5. Buttons --- */
 .btn {
     display: inline-flex;

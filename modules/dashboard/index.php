@@ -45,49 +45,43 @@ $upcomingPayments = $pdo->query("
         </div>
     </div>
 
-    <!-- Top KPI Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="kpi-title">Active ARR / Value</span>
-                    <i data-lucide="dollar-sign" class="w-5 h-5 text-success"></i>
+    <!-- Top Connected KPI Bar Card with Watermark Fading Icons -->
+    <div class="kpi-bar-container mb-4">
+        <div class="row g-0">
+            <div class="col-md-3">
+                <div class="kpi-bar-item">
+                    <div class="kpi-bar-title">Active ARR / Value</div>
+                    <div class="kpi-bar-value text-dark"><?= formatCurrency($revenueSum) ?></div>
+                    <div class="kpi-bar-subtext">Active annual contract value</div>
+                    <i data-lucide="dollar-sign" class="kpi-fading-icon"></i>
                 </div>
-                <div class="kpi-value"><?= formatCurrency($revenueSum) ?></div>
-                <span class="text-xs text-muted mt-2">Active annual contract value</span>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="kpi-title">Active Clients</span>
-                    <i data-lucide="building-2" class="w-5 h-5 text-primary"></i>
+            <div class="col-md-3">
+                <div class="kpi-bar-item">
+                    <div class="kpi-bar-title">Active Client Companies</div>
+                    <div class="kpi-bar-value text-dark"><?= $activeClients ?></div>
+                    <div class="kpi-bar-subtext">Total registered client accounts</div>
+                    <i data-lucide="building-2" class="kpi-fading-icon"></i>
                 </div>
-                <div class="kpi-value"><?= $activeClients ?></div>
-                <span class="text-xs text-muted mt-2">Total active client accounts</span>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="kpi-title">Expiring (30 Days)</span>
-                    <i data-lucide="alert-triangle" class="w-5 h-5 text-warning"></i>
+            <div class="col-md-3">
+                <div class="kpi-bar-item">
+                    <div class="kpi-bar-title">Expiring (Next 30 Days)</div>
+                    <div class="kpi-bar-value text-warning"><?= $expiringContracts ?></div>
+                    <div class="kpi-bar-subtext">Requires early renewal outreach</div>
+                    <i data-lucide="calendar" class="kpi-fading-icon"></i>
                 </div>
-                <div class="kpi-value text-warning"><?= $expiringContracts ?></div>
-                <span class="text-xs text-muted mt-2">Requires early outreach</span>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="kpi-title">Overdue Obligations</span>
-                    <i data-lucide="alert-octagon" class="w-5 h-5 text-danger"></i>
+            <div class="col-md-3">
+                <div class="kpi-bar-item">
+                    <div class="kpi-bar-title">Overdue Payment Schedule</div>
+                    <div class="kpi-bar-value text-danger"><?= $overduePayments ?></div>
+                    <div class="kpi-bar-subtext">Pending installment collections</div>
+                    <i data-lucide="alert-circle" class="kpi-fading-icon"></i>
                 </div>
-                <div class="kpi-value text-danger"><?= $overduePayments ?></div>
-                <span class="text-xs text-muted mt-2">Pending client payments</span>
             </div>
         </div>
     </div>
