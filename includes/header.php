@@ -8,6 +8,9 @@ require_once __DIR__ . '/bootstrap.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Renewly Admin Pro</title>
+    <!-- Favicon / Tab Logo -->
+    <link rel="icon" type="image/png" href="<?= APP_URL ?>/images/logo.png">
+    <link rel="shortcut icon" type="image/png" href="<?= APP_URL ?>/images/logo.png">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Lucide Icons -->

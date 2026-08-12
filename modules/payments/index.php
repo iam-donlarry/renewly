@@ -290,7 +290,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
 
 <script>
 async function markPaid(paymentId) {
-    const ref = await customPrompt("Enter payment reference number (optional):", "Record Payment Installment", "e.g. REF-2026-9812");
+    const ref = await customPrompt("Enter Invoice Number for this payment schedule (serves as payment reference):", "Record Payment & Invoice Reference", "e.g. INV-2026-0084");
     if (ref === null) return;
     try {
         const res = await fetchAPI('<?= APP_URL ?>/ajax/payments/mark_paid.php', {

@@ -23,6 +23,9 @@ $headerNotificationCount = $headerPendingApprovals + $headerExpiringCount;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($pageTitle) ? sanitize($pageTitle) . ' | ' : '' ?><?= APP_NAME ?></title>
+    <!-- Favicon / Tab Logo -->
+    <link rel="icon" type="image/png" href="<?= APP_URL ?>/images/logo.png">
+    <link rel="shortcut icon" type="image/png" href="<?= APP_URL ?>/images/logo.png">
     <!-- Outfit Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

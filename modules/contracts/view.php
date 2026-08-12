@@ -465,12 +465,12 @@ async function submitReduction() {
 }
 
 async function markPaymentPaid(paymentId) {
-    const ok = await customConfirm("Mark this payment installment as Paid?", "Confirm Payment Processing", "Mark Paid");
-    if (!ok) return;
+    const ref = await customPrompt("Enter Invoice Number for this payment schedule (serves as payment reference):", "Record Payment & Invoice Reference", "e.g. INV-2026-0084");
+    if (ref === null) return;
     try {
         const res = await fetchAPI('<?= APP_URL ?>/ajax/payments/mark_paid.php', {
             method: 'POST',
-            body: JSON.stringify({ payment_id: paymentId })
+            body: JSON.stringify({ payment_id: paymentId, reference: ref })
         });
         if (res.success) {
             showToast('Payment marked as Paid.', 'success');
