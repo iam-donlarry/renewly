@@ -1,0 +1,17 @@
+# Apache Rewrite Rules for Clean URL Routing — Renewly
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Renewly/
+
+    # Prevent direct directory browsing
+    Options -Indexes
+
+    # Serve static assets directly if they exist
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all clean URLs to index.php
+    RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+</IfModule>

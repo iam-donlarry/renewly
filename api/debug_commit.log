@@ -1,0 +1,39 @@
+Processing Item: PID=1, Qty=20, Cost=15
+Updating Item 1: NewQty=20 >= OldQty=15. ValueDiff=150. Executing Update.
+--- Request at 2025-12-31 16:26:49 ---
+Raw Input: {"subscription_id":6,"items":[{"product_id":1,"quantity":20,"unit_cost":15}]}
+Processing Item: PID=1, Qty=20, Cost=15
+Updating Item 1: NewQty=20 >= OldQty=15. ValueDiff=150. Executing Update.
+EXCEPTION: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'currency' cannot be null
+#0 C:\xampp\htdocs\Renewly\api\commit_modification.php(128): PDOStatement->execute(Array)
+#1 {main}
+EXCEPTION: Invalid request method
+#0 {main}
+--- Request at 2025-12-31 16:40:26 ---
+Raw Input: {"subscription_id":"6","items":[{"product_id":"1","quantity":15,"unit_cost":15},{"product_id":"3","quantity":15,"unit_cost":12},{"product_id":"2","quantity":15,"unit_cost":20}],"due_now":0}
+Processing Item: PID=1, Qty=15, Cost=15
+Updating Item 1: NewQty=15 >= OldQty=15. ValueDiff=75. Executing Update.
+Processing Item: PID=3, Qty=15, Cost=12
+Updating Item 3: NewQty=15 >= OldQty=10. ValueDiff=60. Executing Update.
+Processing Item: PID=2, Qty=15, Cost=20
+Updating Item 2: NewQty=15 >= OldQty=10. ValueDiff=100. Executing Update.
+--- Request at 2026-01-05 11:12:57 ---
+Raw Input: {"subscription_id":"1","items":[{"product_id":"1","quantity":100,"unit_cost":20},{"product_id":"3","quantity":20,"unit_cost":50}],"due_now":0}
+Processing Item: PID=1, Qty=100, Cost=20
+Updating Item 1: NewQty=100 >= OldQty=100. ValueDiff=0. Executing Update.
+Processing Item: PID=3, Qty=20, Cost=50
+Item 3 not found in current map. Inserting.
+--- Request at 2026-01-05 11:16:48 ---
+Raw Input: {"subscription_id":"1","items":[{"product_id":"1","quantity":100,"unit_cost":20}],"due_now":0}
+Processing Item: PID=1, Qty=100, Cost=20
+Updating Item 1: NewQty=100 >= OldQty=100. ValueDiff=0. Executing Update.
+--- Request at 2026-01-05 11:17:15 ---
+Raw Input: {"subscription_id":"1","items":[{"product_id":"1","quantity":100,"unit_cost":20}],"due_now":0}
+Processing Item: PID=1, Qty=100, Cost=20
+Updating Item 1: NewQty=100 >= OldQty=100. ValueDiff=0. Executing Update.
+--- Request at 2026-01-05 11:20:01 ---
+Raw Input: {"subscription_id":"1","items":[{"product_id":"1","quantity":100,"unit_cost":20},{"product_id":"3","quantity":20,"unit_cost":50}],"due_now":0}
+Processing Item: PID=1, Qty=100, Cost=20
+Updating Item 1: NewQty=100 >= OldQty=100. ValueDiff=0. Executing Update.
+Processing Item: PID=3, Qty=20, Cost=50
+Updating Item 3: NewQty=20 >= OldQty=20. ValueDiff=0. Executing Update.

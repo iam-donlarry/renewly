@@ -1,0 +1,695 @@
+/* Renewly Enterprise Design System — Matching Expense App Design System */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* --- 1. Variables & Theme --- */
+:root {
+    /* Brand Colors */
+    --primary: #12b1b0;
+    --primary-dark: #0e8c8b;
+    --primary-light: #e0f2f1;
+    --secondary: #0f172a;
+    --accent: #4db6ac;
+    --danger: #ef4444;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+
+    /* Grays & Backgrounds */
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+
+    /* Radius */
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- 2. Reset & Base --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+svg.lucide, i[data-lucide], svg[data-lucide] {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke-width: 2;
+    vertical-align: middle;
+    display: inline-block;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+}
+
+.text-primary, 
+svg.text-primary, 
+i.text-primary, 
+[data-lucide].text-primary,
+svg[data-lucide].text-primary,
+.btn-light i.text-primary,
+.btn-light svg.text-primary {
+    color: #12b1b0 !important;
+    stroke: #12b1b0 !important;
+}
+
+svg.text-primary path,
+svg.text-primary circle,
+svg.text-primary polyline,
+svg.text-primary line,
+svg.text-primary rect,
+[data-lucide].text-primary path,
+[data-lucide].text-primary circle,
+[data-lucide].text-primary polyline,
+[data-lucide].text-primary line,
+[data-lucide].text-primary rect {
+    stroke: #12b1b0 !important;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+/* --- 3. Layout & Navigation --- */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 240px;
+    margin-top: 60px;
+    padding: 2rem;
+    width: calc(100% - 240px);
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Topbar Header (Matching Expense App) */
+.app-header {
+    height: 60px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.brand-logo img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-logo span {
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+    color: #12b1b0 !important;
+    font-weight: 800;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: inherit;
+    text-decoration: none;
+    padding: 0.35rem 0.85rem;
+    border-radius: 99px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: var(--transition);
+}
+
+.user-menu:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.user-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0f2f2;
+    color: #12b1b0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.user-name {
+    font-weight: 700 !important;
+    font-size: 0.85rem;
+    color: #0f172a !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    display: block;
+}
+
+.user-role {
+    font-size: 0.725rem;
+    color: #64748b !important;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    display: block;
+}
+
+/* Sidebar Navigation (Ghostwhite Expense App Theme) */
+.sidebar {
+    width: 240px;
+    background: ghostwhite !important;
+    color: #334155;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1020;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-right: 1px solid #e2e8f0;
+}
+
+.sidebar-nav {
+    padding: 1rem 0;
+    flex: 1;
+}
+
+.sidebar-section-header {
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 1.25rem 1.5rem 0.4rem 1.5rem;
+}
+
+.nav-link-item, .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    margin: 2px 12px;
+    color: #334155 !important;
+    transition: var(--transition);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+}
+
+.nav-link-item svg, .nav-link-item i[data-lucide],
+.nav-link svg, .nav-link i[data-lucide] {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    color: #64748b;
+    transition: var(--transition);
+}
+
+.nav-link-item:hover, .nav-link:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.nav-link-item:hover svg, .nav-link-item:hover i[data-lucide],
+.nav-link:hover svg, .nav-link:hover i[data-lucide] {
+    color: #0f172a !important;
+}
+
+.nav-link-item.active, .nav-link.active {
+    background: #12b1b0 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(18, 177, 176, 0.35);
+}
+
+.nav-link-item.active svg, .nav-link-item.active i[data-lucide],
+.nav-link.active svg, .nav-link.active i[data-lucide] {
+    color: #ffffff !important;
+}
+
+/* Nav Groups (Collapsible Details/Summary) */
+.nav-group-summary {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    margin: 2px 12px;
+    color: #334155;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    user-select: none;
+    list-style: none;
+}
+
+.nav-group-summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-group-summary:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.nav-group-summary svg, .nav-group-summary i[data-lucide] {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    color: #64748b;
+}
+
+.caret-icon {
+    margin-left: auto;
+    width: 14px !important;
+    height: 14px !important;
+    transition: transform 0.2s ease;
+}
+
+details[open] .caret-icon {
+    transform: rotate(90deg);
+}
+
+.sub-menu {
+    padding-left: 1.75rem;
+    margin-top: 2px;
+}
+
+.sub-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    margin: 2px 12px 2px 0;
+    color: #475569 !important;
+    font-size: 0.8375rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.sub-nav-link:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.sub-nav-link.active {
+    background: #12b1b0 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+.nav-badge {
+    background: var(--danger);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 700;
+}
+
+/* --- 4. Cards & Containers (Expense App / BayePay SaaS Style) --- */
+.card, .card-enterprise, .stat-card {
+    background: #ffffff;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.stat-card:hover, .card:hover, .card-enterprise:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.kpi-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.kpi-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+/* --- 5. Buttons --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: var(--transition);
+    font-size: 0.875rem;
+    line-height: 1.2;
+    gap: 0.5rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn-primary, .bg-primary {
+    background-color: #12b1b0 !important;
+    border-color: #12b1b0 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover {
+    background-color: #0e8c8b !important;
+    border-color: #0e8c8b !important;
+    box-shadow: 0 4px 12px rgba(18, 177, 176, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: #12b1b0 !important;
+    border-color: #12b1b0 !important;
+    background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #12b1b0 !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary {
+    background-color: #64748b;
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+/* Action Dropdown Buttons */
+.action-dropdown-toggle {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    padding: 0.45rem 0.85rem !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.15s ease;
+}
+
+.action-dropdown-toggle:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+/* --- 6. Tables & Table Containers (Expense App Style) --- */
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 0.85rem 1.15rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.775rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* --- 7. Badges (Pill Soft Style) --- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.badge-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.badge-pending, .badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-approved, .badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-rejected, .badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-paid, .badge-info {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.badge-primary {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.badge-secondary {
+    background: #f1f5f9;
+    color: var(--text-secondary);
+}
+
+/* --- 8. Forms & Inputs --- */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label, label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.form-control, input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    transition: var(--transition);
+    font-family: 'Outfit', sans-serif;
+    background: #ffffff;
+    color: var(--text-primary);
+}
+
+.form-control:focus, input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #12b1b0;
+    box-shadow: 0 0 0 3px rgba(18, 177, 176, 0.15);
+}
+
+/* Offcanvas Drawer Layering (Positioned cleanly below topbar header at top: 60px) */
+.offcanvas {
+    top: 60px !important;
+    height: calc(100vh - 60px) !important;
+    z-index: 3500 !important;
+}
+
+.offcanvas-backdrop {
+    top: 60px !important;
+    height: calc(100vh - 60px) !important;
+    z-index: 3490 !important;
+}
+
+/* Custom Toast Container */
+#toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 6000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.toast-item {
+    min-width: 300px;
+    max-width: 400px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.toast-item.toast-success { border-left-color: var(--success); }
+.toast-item.toast-error { border-left-color: var(--danger); }
+.toast-item.toast-warning { border-left-color: var(--warning); }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%) !important;
+        width: 240px !important;
+        z-index: 3000;
+        top: 0; 
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 1.25rem 1rem;
+    }
+
+    body.sidebar-open .sidebar {
+        transform: translateX(0) !important;
+    }
+}
