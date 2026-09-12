@@ -34,18 +34,82 @@ $headerNotificationCount = $headerPendingApprovals + $headerExpiringCount;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <!-- Application CSS Design System -->
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/app.css">
+    <!-- Application CSS Design System (with cache busting) -->
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/app.css?v=<?= time() ?>">
+    
+    <!-- Restore Sidebar Mini state before render to prevent flicker (Expense App Pattern) -->
+    <script>
+        if (localStorage.getItem('sidebar_mini') === '1' && window.innerWidth > 768) {
+            document.documentElement.classList.add('sidebar-mini');
+        }
+
+        // Global Sidebar Toggle Function (Infallible inline handler matching Expense App)
+        function toggleSidebarMini() {
+            const isMobile = window.innerWidth <= 768;
+            const body = document.body;
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (isMobile) {
+                body.classList.toggle('sidebar-open');
+                body.classList.remove('sidebar-mini');
+                if (sidebar) sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('show');
+            } else {
+                body.classList.toggle('sidebar-mini');
+                document.documentElement.classList.toggle('sidebar-mini');
+                body.classList.remove('sidebar-open');
+                const isMini = body.classList.contains('sidebar-mini');
+                localStorage.setItem('sidebar_mini', isMini ? '1' : '0');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('sidebar_mini') === '1' && window.innerWidth > 768) {
+                document.body.classList.add('sidebar-mini');
+            }
+
+            // Close mobile sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768 && document.body.classList.contains('sidebar-open')) {
+                    const sidebar = document.getElementById('sidebar');
+                    const toggle = document.getElementById('sidebarToggle');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar && !sidebar.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                        document.body.classList.remove('sidebar-open');
+                        if (sidebar) sidebar.classList.remove('show');
+                        if (overlay) overlay.classList.remove('show');
+                    }
+                }
+            });
+
+            // If in mini mode and user clicks a nav-group summary, auto-expand sidebar
+            document.querySelectorAll('.nav-group-summary').forEach(function(summary) {
+                summary.addEventListener('click', function() {
+                    if (document.body.classList.contains('sidebar-mini')) {
+                        document.body.classList.remove('sidebar-mini');
+                        document.documentElement.classList.remove('sidebar-mini');
+                        localStorage.setItem('sidebar_mini', '0');
+                    }
+                });
+            });
+
+            // Initialize Lucide Icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
 </head>
-<body>
+<body class="<?= (isset($_COOKIE['sidebar_mini']) && $_COOKIE['sidebar_mini'] === '1') ? 'sidebar-mini' : '' ?>">
 <div class="app-wrapper">
     <!-- Top Header Navigation -->
     <header class="app-header">
-        <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-sm btn-light border d-lg-none" id="sidebarToggle">
-                <i data-lucide="menu" class="w-5 h-5"></i>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-light border p-2 d-flex align-items-center justify-content-center" id="sidebarToggle" type="button" onclick="toggleSidebarMini()" title="Toggle Sidebar">
+                <i data-lucide="menu" class="w-5 h-5 text-secondary"></i>
             </button>
-            <a href="<?= APP_URL ?>/dashboard" class="brand-logo">
+            <a href="<?= APP_URL ?>/dashboard" class="brand-logo ms-1">
                 <img src="<?= APP_URL ?>/images/logo.png" alt="Renewly Logo" onerror="this.onerror=null; this.src='<?= APP_URL ?>/assets/images/logo.png';">
                 <span>Renewly</span>
             </a>
@@ -143,6 +207,7 @@ $headerNotificationCount = $headerPendingApprovals + $headerExpiringCount;
             </div>
         </div>
     </header>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Include Sidebar Navigation -->
     <?php require_once __DIR__ . '/sidebar.php'; ?>

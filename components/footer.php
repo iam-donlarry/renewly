@@ -9,7 +9,7 @@
 
 <!-- Bootstrap 5 Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Application JS -->
-<script src="<?= APP_URL ?>/assets/js/app.js"></script>
+<!-- Application JS (with cache busting) -->
+<script src="<?= APP_URL ?>/assets/js/app.js?v=<?= time() ?>"></script>
 </body>
 </html>

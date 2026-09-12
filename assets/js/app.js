@@ -9,14 +9,29 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
-    // Sidebar Mobile Toggle
-    const mobileToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.sidebar');
-    if (mobileToggle && sidebar) {
-        mobileToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
+    // Sidebar overlay and mobile drawer close handlers (toggleSidebarMini is defined in header.php)
+    const overlay = document.getElementById('sidebarOverlay');
+    const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    // Close mobile drawer when clicking overlay or outside
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            document.body.classList.remove('sidebar-open');
+            sidebar?.classList.remove('show');
+            overlay.classList.remove('show');
         });
     }
+
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 992 && (document.body.classList.contains('sidebar-open') || sidebar?.classList.contains('show'))) {
+            if (sidebar && !sidebar.contains(e.target) && sidebarToggle && !sidebarToggle.contains(e.target)) {
+                document.body.classList.remove('sidebar-open');
+                sidebar.classList.remove('show');
+                if (overlay) overlay.classList.remove('show');
+            }
+        }
+    });
 });
 
 /**

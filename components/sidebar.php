@@ -18,11 +18,11 @@ if (hasPermission('payments.view')) {
     $overduePayments = (int)$pdo->query("SELECT COUNT(*) FROM payment_schedules WHERE status = 'overdue' OR (status = 'pending' AND due_date < CURRENT_DATE)")->fetchColumn();
 }
 ?>
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
     <nav class="sidebar-nav">
         <!-- Main Section -->
         <div class="sidebar-section-header">Main</div>
-        <a href="<?= APP_URL ?>/dashboard" class="nav-link-item <?= $currentRoute === 'dashboard' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/dashboard" class="nav-link-item <?= $currentRoute === 'dashboard' ? 'active' : '' ?>" title="Dashboard">
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             <span>Dashboard</span>
         </a>
@@ -31,7 +31,7 @@ if (hasPermission('payments.view')) {
         <div class="sidebar-section-header">Management</div>
         
         <?php if (hasPermission('clients.view')): ?>
-        <a href="<?= APP_URL ?>/clients" class="nav-link-item <?= $currentRoute === 'clients' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/clients" class="nav-link-item <?= $currentRoute === 'clients' ? 'active' : '' ?>" title="Clients">
             <i data-lucide="building-2" class="w-5 h-5"></i>
             <span>Clients</span>
         </a>
@@ -40,16 +40,16 @@ if (hasPermission('payments.view')) {
         <?php if (hasPermission('vendors.view')): ?>
         <?php $catalog_active = in_array($currentRoute, ['vendors', 'products']); ?>
         <details class="nav-group" <?= $catalog_active ? 'open' : '' ?>>
-            <summary class="nav-group-summary">
+            <summary class="nav-group-summary" title="Vendor Catalog">
                 <i data-lucide="store" class="w-5 h-5"></i>
                 <span>Vendor Catalog</span>
                 <i data-lucide="chevron-right" class="caret-icon"></i>
             </summary>
             <div class="sub-menu">
-                <a href="<?= APP_URL ?>/vendors" class="sub-nav-link <?= $currentRoute === 'vendors' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/vendors" class="sub-nav-link <?= $currentRoute === 'vendors' ? 'active' : '' ?>" title="Vendors Directory">
                     <span>Vendors Directory</span>
                 </a>
-                <a href="<?= APP_URL ?>/products" class="sub-nav-link <?= $currentRoute === 'products' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/products" class="sub-nav-link <?= $currentRoute === 'products' ? 'active' : '' ?>" title="Products & Pricing">
                     <span>Products & Pricing</span>
                 </a>
             </div>
@@ -62,7 +62,7 @@ if (hasPermission('payments.view')) {
         <?php if (hasPermission('contracts.view')): ?>
         <?php $contracts_active = in_array($currentRoute, ['contracts', 'contracts/create', 'contracts/view', 'subscriptions']); ?>
         <details class="nav-group" <?= $contracts_active ? 'open' : '' ?>>
-            <summary class="nav-group-summary">
+            <summary class="nav-group-summary" title="Contracts">
                 <i data-lucide="file-text" class="w-5 h-5"></i>
                 <span>Contracts</span>
                 <?php if ($pendingApprovals > 0): ?>
@@ -71,16 +71,16 @@ if (hasPermission('payments.view')) {
                 <i data-lucide="chevron-right" class="caret-icon"></i>
             </summary>
             <div class="sub-menu">
-                <a href="<?= APP_URL ?>/contracts" class="sub-nav-link <?= $currentRoute === 'contracts' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/contracts" class="sub-nav-link <?= $currentRoute === 'contracts' ? 'active' : '' ?>" title="All Contracts">
                     <span>All Contracts</span>
                 </a>
                 <?php if (hasPermission('contracts.create')): ?>
-                <a href="<?= APP_URL ?>/contracts/create" class="sub-nav-link <?= $currentRoute === 'contracts/create' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/contracts/create" class="sub-nav-link <?= $currentRoute === 'contracts/create' ? 'active' : '' ?>" title="New Contract">
                     <span>New Contract</span>
                 </a>
                 <?php endif; ?>
                 <?php if (hasPermission('contracts.approve')): ?>
-                <a href="<?= APP_URL ?>/approvals" class="sub-nav-link <?= $currentRoute === 'approvals' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/approvals" class="sub-nav-link <?= $currentRoute === 'approvals' ? 'active' : '' ?>" title="Approval Queue">
                     <span>Approval Queue</span>
                     <?php if ($pendingApprovals > 0): ?>
                         <span class="nav-badge ms-auto"><?= $pendingApprovals ?></span>
@@ -92,7 +92,7 @@ if (hasPermission('payments.view')) {
         <?php endif; ?>
 
         <?php if (hasPermission('renewals.view')): ?>
-        <a href="<?= APP_URL ?>/renewals" class="nav-link-item <?= $currentRoute === 'renewals' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/renewals" class="nav-link-item <?= $currentRoute === 'renewals' ? 'active' : '' ?>" title="Renewal Pipeline">
             <i data-lucide="rotate-cw" class="w-5 h-5"></i>
             <span>Renewal Pipeline</span>
             <?php if ($expiringRenewals > 0): ?>
@@ -102,7 +102,7 @@ if (hasPermission('payments.view')) {
         <?php endif; ?>
 
         <?php if (hasPermission('payments.view')): ?>
-        <a href="<?= APP_URL ?>/payments" class="nav-link-item <?= $currentRoute === 'payments' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/payments" class="nav-link-item <?= $currentRoute === 'payments' ? 'active' : '' ?>" title="Payment Schedules">
             <i data-lucide="credit-card" class="w-5 h-5"></i>
             <span>Payment Schedules</span>
             <?php if ($overduePayments > 0): ?>
@@ -115,11 +115,11 @@ if (hasPermission('payments.view')) {
         <div class="sidebar-section-header">System</div>
 
         <?php if (hasPermission('reports.view')): ?>
-        <a href="<?= APP_URL ?>/reports" class="nav-link-item <?= $currentRoute === 'reports' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/reports" class="nav-link-item <?= $currentRoute === 'reports' ? 'active' : '' ?>" title="Reports & Analytics">
             <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
             <span>Reports & Analytics</span>
         </a>
-        <a href="<?= APP_URL ?>/activity" class="nav-link-item <?= $currentRoute === 'activity' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/activity" class="nav-link-item <?= $currentRoute === 'activity' ? 'active' : '' ?>" title="Activity Audit Trail">
             <i data-lucide="activity" class="w-5 h-5"></i>
             <span>Activity Audit Trail</span>
         </a>
@@ -128,19 +128,19 @@ if (hasPermission('payments.view')) {
         <?php if (hasPermission('users.manage') || hasPermission('roles.manage')): ?>
         <?php $users_active = in_array($currentRoute, ['users', 'roles']); ?>
         <details class="nav-group" <?= $users_active ? 'open' : '' ?>>
-            <summary class="nav-group-summary">
+            <summary class="nav-group-summary" title="User Management">
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span>User Management</span>
                 <i data-lucide="chevron-right" class="caret-icon"></i>
             </summary>
             <div class="sub-menu">
                 <?php if (hasPermission('users.manage')): ?>
-                <a href="<?= APP_URL ?>/users" class="sub-nav-link <?= $currentRoute === 'users' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/users" class="sub-nav-link <?= $currentRoute === 'users' ? 'active' : '' ?>" title="Users List">
                     <span>Users List</span>
                 </a>
                 <?php endif; ?>
                 <?php if (hasPermission('roles.manage')): ?>
-                <a href="<?= APP_URL ?>/roles" class="sub-nav-link <?= $currentRoute === 'roles' ? 'active' : '' ?>">
+                <a href="<?= APP_URL ?>/roles" class="sub-nav-link <?= $currentRoute === 'roles' ? 'active' : '' ?>" title="Roles & Permissions">
                     <span>Roles & Permissions</span>
                 </a>
                 <?php endif; ?>
@@ -149,7 +149,7 @@ if (hasPermission('payments.view')) {
         <?php endif; ?>
 
         <?php if (hasPermission('settings.manage')): ?>
-        <a href="<?= APP_URL ?>/settings" class="nav-link-item <?= $currentRoute === 'settings' ? 'active' : '' ?>">
+        <a href="<?= APP_URL ?>/settings" class="nav-link-item <?= $currentRoute === 'settings' ? 'active' : '' ?>" title="System Settings">
             <i data-lucide="settings" class="w-5 h-5"></i>
             <span>System Settings</span>
         </a>

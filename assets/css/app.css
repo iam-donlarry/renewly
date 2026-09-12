@@ -373,6 +373,149 @@ details[open] .caret-icon {
     font-weight: 700;
 }
 
+/* --- Sidebar Minimization (Expense App Pattern) --- */
+:root {
+    --sidebar-mini-width: 70px;
+}
+
+html.sidebar-mini .sidebar,
+body.sidebar-mini .sidebar {
+    width: 70px !important;
+}
+
+html.sidebar-mini .main-content,
+body.sidebar-mini .main-content {
+    margin-left: 70px !important;
+    width: calc(100% - 70px) !important;
+}
+
+body.sidebar-mini .nav-text,
+body.sidebar-mini .caret-icon,
+body.sidebar-mini .sidebar-section-header,
+body.sidebar-mini .nav-badge,
+body.sidebar-mini .sub-menu,
+body.sidebar-mini .nav-link-item span,
+body.sidebar-mini .nav-link span,
+body.sidebar-mini .nav-group-summary span {
+    display: none !important;
+}
+
+body.sidebar-mini .nav-link-item,
+body.sidebar-mini .nav-link,
+body.sidebar-mini .nav-group-summary {
+    justify-content: center !important;
+    padding: 0.75rem 0 !important;
+    margin: 4px 8px !important;
+}
+
+body.sidebar-mini .nav-link-item svg,
+body.sidebar-mini .nav-link-item i[data-lucide],
+body.sidebar-mini .nav-link svg,
+body.sidebar-mini .nav-link i[data-lucide],
+body.sidebar-mini .nav-group-summary svg,
+body.sidebar-mini .nav-group-summary i[data-lucide] {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    width: 22px !important;
+    height: 22px !important;
+}
+
+/* Mobile Drawer Overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1015;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.sidebar-overlay.show,
+body.sidebar-open .sidebar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Responsive Breakpoint for Mobile Drawer (768px matching Expense App) */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 240px !important;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.show,
+    body.sidebar-open .sidebar {
+        transform: translateX(0) !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 1.25rem !important;
+    }
+
+    /* Reset mini styles on mobile */
+    body.sidebar-mini .sidebar {
+        width: 240px !important;
+        transform: translateX(-100%);
+    }
+
+    body.sidebar-mini.sidebar-open .sidebar {
+        transform: translateX(0) !important;
+    }
+
+    body.sidebar-mini .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    body.sidebar-mini .sidebar-section-header {
+        height: auto;
+        padding: 1.25rem 1.5rem 0.4rem 1.5rem;
+        margin: 0;
+        background: transparent;
+        font-size: 0.7rem;
+        color: #64748b;
+        display: block !important;
+    }
+
+    body.sidebar-mini .nav-link-item span,
+    body.sidebar-mini .nav-group-summary span,
+    body.sidebar-mini .caret-icon,
+    body.sidebar-mini .sub-menu {
+        display: block !important;
+    }
+
+    body.sidebar-mini details[open] .sub-menu {
+        display: block !important;
+    }
+
+    body.sidebar-mini .nav-link-item,
+    body.sidebar-mini .nav-group-summary {
+        justify-content: flex-start !important;
+        padding: 0.65rem 1rem !important;
+        margin: 2px 12px !important;
+    }
+
+    body.sidebar-mini .nav-link-item svg,
+    body.sidebar-mini .nav-group-summary svg {
+        margin-right: 0.75rem !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    body.sidebar-mini .nav-badge {
+        position: static;
+        border: none;
+    }
+}
+
 /* --- 4. Cards & Containers (Expense App / BayePay SaaS Style) --- */
 .card, .card-enterprise, .stat-card {
     background: #ffffff;

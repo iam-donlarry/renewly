@@ -1,10 +1,12 @@
 <?php
 // database/db.php
-$host = 'localhost';
-$db   = 'renewly';
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
+require_once __DIR__ . '/../config/config.php';
+
+$host = DB_HOST;
+$db   = DB_NAME;
+$user = DB_USER;
+$pass = DB_PASS;
+$charset = DB_CHARSET;
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
