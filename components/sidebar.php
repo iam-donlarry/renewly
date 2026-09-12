@@ -102,11 +102,11 @@ if (hasPermission('payments.view')) {
         <?php endif; ?>
 
         <?php if (hasPermission('payments.view')): ?>
-        <a href="<?= APP_URL ?>/payments" class="nav-link-item <?= $currentRoute === 'payments' ? 'active' : '' ?>" title="Payment Schedules">
+        <a href="<?= APP_URL ?>/payments" class="nav-link-item <?= $currentRoute === 'payments' ? 'active' : '' ?>" title="Payment Schedules<?= $overduePayments > 0 ? " ({$overduePayments} Overdue)" : '' ?>">
             <i data-lucide="credit-card" class="w-5 h-5"></i>
             <span>Payment Schedules</span>
             <?php if ($overduePayments > 0): ?>
-                <span class="nav-badge ms-auto"><?= $overduePayments ?></span>
+                <span class="nav-badge ms-auto" title="<?= $overduePayments ?> Overdue"><?= $overduePayments ?></span>
             <?php endif; ?>
         </a>
         <?php endif; ?>

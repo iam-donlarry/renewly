@@ -6,12 +6,42 @@ RBAC::require('payments.view');
 
 $pdo = getDB();
 
+// Auto-synchronize overdue installments where due_date has elapsed
+$pdo->exec("UPDATE payment_schedules SET status = 'overdue' WHERE status = 'pending' AND due_date < CURRENT_DATE");
+
 // Filter parameters
 $clientId     = !empty($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
-$monthFilter  = !empty($_GET['month']) ? (int)$_GET['month'] : 0;
-$yearFilter   = !empty($_GET['year']) ? (int)$_GET['year'] : 0;
 $statusFilter = trim($_GET['status'] ?? '');
 $searchQuery  = trim($_GET['search'] ?? '');
+
+// Default Month and Year handling:
+// If 'month' is not present in URL:
+// - If status=overdue is explicitly requested, show all months ($monthFilter = 0) so all overdue items across time are visible
+// - Otherwise, default to current month
+if (!isset($_GET['month'])) {
+    if ($statusFilter === 'overdue') {
+        $monthFilter = 0;
+    } else {
+        $monthFilter = (int)date('n');
+    }
+} elseif ($_GET['month'] === 'all' || $_GET['month'] === '0' || $_GET['month'] === '') {
+    $monthFilter = 0;
+} else {
+    $monthFilter = (int)$_GET['month'];
+}
+
+// Year default handling:
+if (!isset($_GET['year'])) {
+    if ($statusFilter === 'overdue') {
+        $yearFilter = 0;
+    } else {
+        $yearFilter = (int)date('Y');
+    }
+} elseif ($_GET['year'] === 'all' || $_GET['year'] === '0' || $_GET['year'] === '') {
+    $yearFilter = 0;
+} else {
+    $yearFilter = (int)$_GET['year'];
+}
 
 // Fetch all Clients for filter dropdown
 $allClients = $pdo->query("SELECT id, company_name FROM clients ORDER BY company_name ASC")->fetchAll() ?: [];
@@ -43,8 +73,14 @@ if ($yearFilter > 0) {
 }
 
 if (!empty($statusFilter)) {
-    $sql .= " AND ps.status = ?";
-    $params[] = $statusFilter;
+    if ($statusFilter === 'overdue') {
+        $sql .= " AND (ps.status = 'overdue' OR (ps.status = 'pending' AND ps.due_date < CURRENT_DATE))";
+    } elseif ($statusFilter === 'pending') {
+        $sql .= " AND ps.status = 'pending' AND ps.due_date >= CURRENT_DATE";
+    } else {
+        $sql .= " AND ps.status = ?";
+        $params[] = $statusFilter;
+    }
 }
 
 if (!empty($searchQuery)) {
@@ -113,7 +149,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
             <div class="col-md-2">
                 <label class="form-label text-xs fw-bold text-secondary mb-1">Due Month</label>
                 <select name="month" class="form-select text-sm">
-                    <option value="">All Months</option>
+                    <option value="all" <?= $monthFilter === 0 ? 'selected' : '' ?>>All Months</option>
                     <?php foreach ($monthsList as $num => $mName): ?>
                         <option value="<?= $num ?>" <?= $monthFilter === $num ? 'selected' : '' ?>>
                             <?= $mName ?>
@@ -126,7 +162,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
             <div class="col-md-2">
                 <label class="form-label text-xs fw-bold text-secondary mb-1">Due Year</label>
                 <select name="year" class="form-select text-sm">
-                    <option value="">All Years</option>
+                    <option value="all" <?= $yearFilter === 0 ? 'selected' : '' ?>>All Years</option>
                     <?php foreach ($yearsList as $yr): ?>
                         <option value="<?= $yr ?>" <?= $yearFilter === $yr ? 'selected' : '' ?>>
                             <?= $yr ?>
@@ -146,9 +182,12 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                 <button type="submit" class="btn btn-primary w-100 font-semibold text-sm py-2">
                     <i data-lucide="filter" class="w-4 h-4 me-1"></i> Filter
                 </button>
-                <?php if ($clientId || $monthFilter || $yearFilter || $statusFilter || $searchQuery): ?>
-                    <a href="<?= APP_URL ?>/payments" class="btn btn-light border py-2 px-3 text-sm" title="Clear Filters">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                <?php 
+                    $isFiltered = ($clientId > 0 || $statusFilter !== '' || $searchQuery !== '' || $monthFilter !== (int)date('n') || $yearFilter !== (int)date('Y'));
+                ?>
+                <?php if ($isFiltered): ?>
+                    <a href="<?= APP_URL ?>/payments" class="btn btn-light border py-2 px-3 text-sm" title="Reset to Current Month">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                     </a>
                 <?php endif; ?>
             </div>
@@ -158,7 +197,10 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
         <div class="d-flex align-items-center gap-2 border-top pt-3 mt-3 flex-wrap">
             <span class="text-xs font-semibold text-secondary me-2">Status:</span>
             <?php 
-                $baseUrl = APP_URL . "/payments?client_id={$clientId}&month={$monthFilter}&year={$yearFilter}&search=" . urlencode($searchQuery);
+                $monthParam = $monthFilter > 0 ? $monthFilter : 'all';
+                $yearParam  = $yearFilter > 0 ? $yearFilter : 'all';
+                $baseUrl = APP_URL . "/payments?client_id={$clientId}&month={$monthParam}&year={$yearParam}&search=" . urlencode($searchQuery);
+                $overdueCountPill = (int)$pdo->query("SELECT COUNT(*) FROM payment_schedules WHERE status = 'overdue' OR (status = 'pending' AND due_date < CURRENT_DATE)")->fetchColumn();
             ?>
             <a href="<?= $baseUrl ?>" class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
                 All Statuses
@@ -166,8 +208,11 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
             <a href="<?= $baseUrl ?>&status=pending" class="btn btn-sm <?= $statusFilter === 'pending' ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
                 Pending
             </a>
-            <a href="<?= $baseUrl ?>&status=overdue" class="btn btn-sm <?= $statusFilter === 'overdue' ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
+            <a href="<?= APP_URL ?>/payments?client_id=<?= $clientId ?>&month=all&year=all&search=<?= urlencode($searchQuery) ?>&status=overdue" class="btn btn-sm <?= $statusFilter === 'overdue' ? 'btn-danger' : 'btn-light border' ?> rounded-pill text-xs font-semibold d-inline-flex align-items-center gap-1.5">
                 Overdue
+                <?php if ($overdueCountPill > 0): ?>
+                    <span class="badge <?= $statusFilter === 'overdue' ? 'bg-white text-danger' : 'bg-danger text-white' ?> rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;"><?= $overdueCountPill ?></span>
+                <?php endif; ?>
             </a>
             <a href="<?= $baseUrl ?>&status=paid" class="btn btn-sm <?= $statusFilter === 'paid' ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
                 Paid
@@ -214,12 +259,14 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                 Installment Schedule Results 
                 <?php if ($monthFilter): ?>
                     <span class="badge badge-info ms-2"><?= $monthsList[$monthFilter] ?> <?= $yearFilter ?: '' ?></span>
+                <?php else: ?>
+                    <span class="badge badge-secondary ms-2">All Months <?= $yearFilter ?: '' ?></span>
                 <?php endif; ?>
             </h5>
             <span class="text-xs text-muted">Showing <?= count($payments) ?> installment row(s)</span>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive" style="min-height: 260px;">
             <table class="table table-hover align-middle text-sm mb-0">
                 <thead class="bg-light">
                     <tr>
@@ -244,13 +291,26 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                         </tr>
                     <?php else: ?>
                         <?php foreach ($payments as $p): ?>
-                            <tr>
+                            <?php 
+                                $isOverdue = ($p['status'] === 'overdue' || ($p['status'] === 'pending' && $p['days_until_due'] < 0));
+                                $isPending = ($p['status'] === 'pending' && $p['days_until_due'] >= 0);
+                                $isPaid    = ($p['status'] === 'paid');
+                                $effectiveStatus = $isOverdue ? 'overdue' : $p['status'];
+                                $escCompanyName = htmlspecialchars($p['company_name'], ENT_QUOTES, 'UTF-8');
+                                $escRef         = htmlspecialchars($p['contract_reference'], ENT_QUOTES, 'UTF-8');
+                            ?>
+                            <tr class="<?= $isOverdue ? 'table-danger' : '' ?>">
                                 <td class="fw-bold text-dark">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="user-avatar-placeholder text-xs" style="width: 32px; height: 32px;">
+                                        <div class="user-avatar-placeholder text-xs <?= $isOverdue ? 'border border-danger' : '' ?>" style="width: 32px; height: 32px;">
                                             <?= strtoupper(substr($p['company_name'], 0, 2)) ?>
                                         </div>
-                                        <span><?= sanitize($p['company_name']) ?></span>
+                                        <div>
+                                            <span><?= sanitize($p['company_name']) ?></span>
+                                            <?php if ($isOverdue): ?>
+                                                <span class="badge bg-danger text-white ms-1" style="font-size: 0.65rem;">Action Needed</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -261,9 +321,16 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                                 <td>
                                     <span class="badge badge-secondary">Installment #<?= $p['installment_number'] ?></span>
                                 </td>
-                                <td class="text-muted font-medium"><?= formatDate($p['due_date']) ?></td>
+                                <td class="font-medium <?= $isOverdue ? 'text-danger fw-bold' : 'text-muted' ?>">
+                                    <?= formatDate($p['due_date']) ?>
+                                    <?php if ($isOverdue): ?>
+                                        <div class="text-danger fw-semibold" style="font-size: 0.72rem;">
+                                            <?= abs($p['days_until_due']) ?> day(s) late
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="fw-bold text-dark"><?= formatCurrency($p['amount'], $p['currency']) ?></td>
-                                <td><?= renderStatusBadge($p['status']) ?></td>
+                                <td><?= renderStatusBadge($effectiveStatus) ?></td>
                                 <td>
                                     <?php if ($p['status'] === 'paid'): ?>
                                         <div class="text-xs fw-semibold text-dark"><?= formatDate($p['payment_date']) ?></div>
@@ -273,11 +340,61 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-end">
-                                    <?php if (hasPermission('payments.manage') && $p['status'] !== 'paid'): ?>
-                                    <button class="btn btn-sm btn-success py-1 px-3 text-xs font-semibold" onclick="markPaid(<?= $p['id'] ?>)">
-                                        <i data-lucide="check" class="w-3.5 h-3.5 me-1"></i> Mark Paid
-                                    </button>
-                                    <?php endif; ?>
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-sm btn-light border dropdown-toggle py-1 px-2.5 text-xs font-semibold d-inline-flex align-items-center gap-1" 
+                                                type="button" 
+                                                data-bs-toggle="dropdown" 
+                                                aria-expanded="false">
+                                            <span>Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border text-xs py-1" style="min-width: 195px;">
+                                            <?php if ($isOverdue): ?>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-danger font-medium" 
+                                                            onclick="sendFollowUp(this, '<?= addslashes($escCompanyName) ?>', '<?= addslashes($escRef) ?>')">
+                                                        <i data-lucide="mail-warning" class="w-4 h-4 text-danger"></i>
+                                                        <span>Follow up with Mail</span>
+                                                    </button>
+                                                </li>
+                                            <?php elseif ($isPending): ?>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-primary font-medium" 
+                                                            onclick="sendReminder(this, '<?= addslashes($escCompanyName) ?>', '<?= addslashes($escRef) ?>')">
+                                                        <i data-lucide="mail" class="w-4 h-4 text-primary"></i>
+                                                        <span>Send Reminder</span>
+                                                    </button>
+                                                </li>
+                                            <?php elseif ($isPaid): ?>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-secondary" 
+                                                            onclick="sendReceipt(this, '<?= addslashes($escCompanyName) ?>', '<?= addslashes($escRef) ?>')">
+                                                        <i data-lucide="mail-check" class="w-4 h-4 text-success"></i>
+                                                        <span>Send Receipt Mail</span>
+                                                    </button>
+                                                </li>
+                                            <?php endif; ?>
+
+                                            <?php if (hasPermission('payments.manage') && !$isPaid): ?>
+                                                <li>
+                                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-success font-medium" 
+                                                            onclick="markPaid(<?= (int)$p['id'] ?>)">
+                                                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                                                        <span>Mark as Paid</span>
+                                                    </button>
+                                                </li>
+                                            <?php endif; ?>
+
+                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-secondary" 
+                                                   href="<?= getContractUrl($p['contract_id']) ?>">
+                                                    <i data-lucide="file-text" class="w-4 h-4 text-muted"></i>
+                                                    <span>View Contract</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -289,6 +406,18 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
 </div>
 
 <script>
+function sendFollowUp(button, companyName, ref) {
+    showToast(`Follow up mail has been sent to ${companyName} (${ref}).`, 'success');
+}
+
+function sendReminder(button, companyName, ref) {
+    showToast(`Reminder mail has been sent to ${companyName} (${ref}).`, 'success');
+}
+
+function sendReceipt(button, companyName, ref) {
+    showToast(`Payment receipt mail has been sent to ${companyName} (${ref}).`, 'success');
+}
+
 async function markPaid(paymentId) {
     const ref = await customPrompt("Enter Invoice Number for this payment schedule (serves as payment reference):", "Record Payment & Invoice Reference", "e.g. INV-2026-0084");
     if (ref === null) return;

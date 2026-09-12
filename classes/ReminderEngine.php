@@ -10,6 +10,12 @@ class ReminderEngine {
         $logs = [];
         $today = new DateTime('today');
 
+        // Synchronize payment schedules that have elapsed due dates
+        $overdueUpdated = $pdo->exec("UPDATE payment_schedules SET status = 'overdue' WHERE status = 'pending' AND due_date < CURRENT_DATE");
+        if ($overdueUpdated > 0) {
+            $logs[] = "Marked {$overdueUpdated} pending payment schedule(s) as overdue.";
+        }
+
         // Stages & intervals (days before expiry)
         $stages = [
             '30_days' => 30,
