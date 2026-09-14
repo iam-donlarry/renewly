@@ -11,8 +11,13 @@ $expiringContracts = (int)$pdo->query("SELECT COUNT(*) FROM contracts WHERE DATE
 $activeClients = (int)$pdo->query("SELECT COUNT(*) FROM clients WHERE status = 'active'")->fetchColumn();
 $overduePayments = (int)$pdo->query("SELECT COUNT(*) FROM payment_schedules WHERE status = 'overdue' OR (status = 'pending' AND due_date < CURRENT_DATE)")->fetchColumn();
 
-// 2. Revenue Totals
-$revenueSum = (float)$pdo->query("SELECT SUM(total_contract_value) FROM contracts WHERE status = 'active'")->fetchColumn();
+// 2. Active Revenue Aggregation (Dual-Currency Supported)
+$activeContractsRows = $pdo->query("SELECT total_contract_value as amount, currency, exchange_rate FROM contracts WHERE status = 'active'")->fetchAll() ?: [];
+$aggActiveRevenue = CurrencyEngine::aggregate($activeContractsRows, 'amount', 'currency', 'exchange_rate');
+
+// 2b. Overdue Payments Aggregation
+$overduePaymentRows = $pdo->query("SELECT amount, currency, exchange_rate FROM payment_schedules WHERE status = 'overdue' OR (status = 'pending' AND due_date < CURRENT_DATE)")->fetchAll() ?: [];
+$aggOverduePayments = CurrencyEngine::aggregate($overduePaymentRows, 'amount', 'currency', 'exchange_rate');
 
 // 3. Renewal Pipeline Overview (Next 60 Days with Forecasting Breakdown)
 $renewalPipeline = RenewalEngine::getPipeline(['days' => 60]);
@@ -51,8 +56,22 @@ $upcomingPayments = $pdo->query("
             <div class="col-md-3">
                 <div class="kpi-bar-item">
                     <div class="kpi-bar-title">Active ARR / Value</div>
-                    <div class="kpi-bar-value text-dark"><?= formatCurrency($revenueSum) ?></div>
-                    <div class="kpi-bar-subtext">Active annual contract value</div>
+                    <?php if ($aggActiveRevenue['has_multiple']): ?>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-baseline gap-1.5 flex-wrap">
+                                <span class="fs-5 font-bold text-dark"><?= formatCurrency($aggActiveRevenue['currencies']['USD'] ?? 0, 'USD') ?></span>
+                                <span class="text-muted text-xs">&bull;</span>
+                                <span class="fs-5 font-bold text-dark"><?= formatCurrency($aggActiveRevenue['currencies']['NGN'] ?? 0, 'NGN') ?></span>
+                            </div>
+                            <div class="kpi-bar-subtext">≈ <?= formatCurrency($aggActiveRevenue['unified_usd'], 'USD') ?> (≈ <?= formatCurrency($aggActiveRevenue['unified_ngn'], 'NGN', 0) ?>)</div>
+                        </div>
+                    <?php elseif ($aggActiveRevenue['has_ngn']): ?>
+                        <div class="kpi-bar-value text-dark"><?= formatCurrency($aggActiveRevenue['currencies']['NGN'] ?? 0, 'NGN') ?></div>
+                        <div class="kpi-bar-subtext">≈ <?= formatCurrency($aggActiveRevenue['unified_usd'], 'USD') ?> USD equiv.</div>
+                    <?php else: ?>
+                        <div class="kpi-bar-value text-dark"><?= formatCurrency($aggActiveRevenue['currencies']['USD'] ?? 0, 'USD') ?></div>
+                        <div class="kpi-bar-subtext">Active annual contract value</div>
+                    <?php endif; ?>
                     <i data-lucide="dollar-sign" class="kpi-fading-icon"></i>
                 </div>
             </div>
@@ -78,7 +97,19 @@ $upcomingPayments = $pdo->query("
             <div class="col-md-3">
                 <div class="kpi-bar-item">
                     <div class="kpi-bar-title">Overdue Payment Schedule</div>
-                    <div class="kpi-bar-value text-danger"><?= $overduePayments ?></div>
+                    <div class="kpi-bar-value text-danger">
+                        <?= $overduePayments ?>
+                        <?php if ($overduePayments > 0 && ($aggOverduePayments['has_usd'] || $aggOverduePayments['has_ngn'])): ?>
+                            <span class="fs-6 text-muted fw-normal">
+                                (<?php 
+                                    $overdueParts = [];
+                                    if (!empty($aggOverduePayments['currencies']['USD'])) $overdueParts[] = formatCurrency($aggOverduePayments['currencies']['USD'], 'USD');
+                                    if (!empty($aggOverduePayments['currencies']['NGN'])) $overdueParts[] = formatCurrency($aggOverduePayments['currencies']['NGN'], 'NGN');
+                                    echo implode(' &bull; ', $overdueParts);
+                                ?>)
+                            </span>
+                        <?php endif; ?>
+                    </div>
                     <div class="kpi-bar-subtext">Pending installment collections</div>
                     <i data-lucide="alert-circle" class="kpi-fading-icon"></i>
                 </div>

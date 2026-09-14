@@ -10,9 +10,10 @@ $pdo = getDB();
 $pdo->exec("UPDATE payment_schedules SET status = 'overdue' WHERE status = 'pending' AND due_date < CURRENT_DATE");
 
 // Filter parameters
-$clientId     = !empty($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
-$statusFilter = trim($_GET['status'] ?? '');
-$searchQuery  = trim($_GET['search'] ?? '');
+$clientId       = !empty($_GET['client_id']) ? (int)$_GET['client_id'] : 0;
+$currencyFilter = strtoupper(trim($_GET['currency'] ?? ''));
+$statusFilter   = trim($_GET['status'] ?? '');
+$searchQuery    = trim($_GET['search'] ?? '');
 
 // Default Month and Year handling:
 // If 'month' is not present in URL:
@@ -62,6 +63,11 @@ if ($clientId > 0) {
     $params[] = $clientId;
 }
 
+if (!empty($currencyFilter) && $currencyFilter !== 'ALL') {
+    $sql .= " AND ps.currency = ?";
+    $params[] = $currencyFilter;
+}
+
 if ($monthFilter > 0) {
     $sql .= " AND MONTH(ps.due_date) = ?";
     $params[] = $monthFilter;
@@ -96,23 +102,15 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $payments = $stmt->fetchAll() ?: [];
 
-// Calculate summary financial statistics for filtered dataset
-$filteredTotalValue = 0.0;
-$filteredPaidValue  = 0.0;
-$filteredPendingVal = 0.0;
-$filteredOverdueVal = 0.0;
+// Segregate payments by status for backend-authoritative dual-currency aggregation
+$paidPayments = array_filter($payments, fn($p) => $p['status'] === 'paid');
+$overduePaymentsList = array_filter($payments, fn($p) => $p['status'] === 'overdue' || ($p['status'] === 'pending' && $p['days_until_due'] < 0));
+$pendingPaymentsList = array_filter($payments, fn($p) => $p['status'] === 'pending' && $p['days_until_due'] >= 0);
 
-foreach ($payments as $p) {
-    $amt = (float)$p['amount'];
-    $filteredTotalValue += $amt;
-    if ($p['status'] === 'paid') {
-        $filteredPaidValue += $amt;
-    } elseif ($p['status'] === 'overdue' || ($p['status'] === 'pending' && $p['days_until_due'] < 0)) {
-        $filteredOverdueVal += $amt;
-    } else {
-        $filteredPendingVal += $amt;
-    }
-}
+$aggTotal   = CurrencyEngine::aggregate($payments);
+$aggPaid    = CurrencyEngine::aggregate($paidPayments);
+$aggPending = CurrencyEngine::aggregate($pendingPaymentsList);
+$aggOverdue = CurrencyEngine::aggregate($overduePaymentsList);
 
 $monthsList = [
     1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
@@ -132,6 +130,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
     <!-- Filter Control Bar -->
     <div class="card-enterprise mb-4">
         <form method="GET" action="<?= APP_URL ?>/payments" class="row g-3 align-items-end">
+
             <!-- 1. Client Select -->
             <div class="col-md-3">
                 <label class="form-label text-xs fw-bold text-secondary mb-1">Client Company</label>
@@ -145,7 +144,17 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                 </select>
             </div>
 
-            <!-- 2. Month Select -->
+            <!-- 2. Currency Select -->
+            <div class="col-md-2">
+                <label class="form-label text-xs fw-bold text-secondary mb-1">Currency</label>
+                <select name="currency" class="form-select text-sm">
+                    <option value="all" <?= empty($currencyFilter) || $currencyFilter === 'ALL' ? 'selected' : '' ?>>All Currencies</option>
+                    <option value="USD" <?= $currencyFilter === 'USD' ? 'selected' : '' ?>>USD ($)</option>
+                    <option value="NGN" <?= $currencyFilter === 'NGN' ? 'selected' : '' ?>>NGN (₦)</option>
+                </select>
+            </div>
+
+            <!-- 3. Month Select -->
             <div class="col-md-2">
                 <label class="form-label text-xs fw-bold text-secondary mb-1">Due Month</label>
                 <select name="month" class="form-select text-sm">
@@ -158,7 +167,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                 </select>
             </div>
 
-            <!-- 3. Year Select -->
+            <!-- 4. Year Select -->
             <div class="col-md-2">
                 <label class="form-label text-xs fw-bold text-secondary mb-1">Due Year</label>
                 <select name="year" class="form-select text-sm">
@@ -171,22 +180,22 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
                 </select>
             </div>
 
-            <!-- 4. Search Query -->
-            <div class="col-md-3">
-                <label class="form-label text-xs fw-bold text-secondary mb-1">Search Keywords</label>
-                <input type="text" name="search" class="form-control text-sm" placeholder="Client, contract ref, payment ref..." value="<?= sanitize($searchQuery) ?>">
+            <!-- 5. Search Query -->
+            <div class="col-md-2">
+                <label class="form-label text-xs fw-bold text-secondary mb-1">Search</label>
+                <input type="text" name="search" class="form-control text-sm" placeholder="Ref, client..." value="<?= sanitize($searchQuery) ?>">
             </div>
 
-            <!-- 5. Submit / Reset Buttons -->
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100 font-semibold text-sm py-2">
-                    <i data-lucide="filter" class="w-4 h-4 me-1"></i> Filter
+            <!-- 6. Submit / Reset Buttons -->
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary w-100 font-semibold text-sm py-2 px-1" title="Apply Filter">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
                 </button>
                 <?php 
-                    $isFiltered = ($clientId > 0 || $statusFilter !== '' || $searchQuery !== '' || $monthFilter !== (int)date('n') || $yearFilter !== (int)date('Y'));
+                    $isFiltered = ($clientId > 0 || (!empty($currencyFilter) && $currencyFilter !== 'ALL') || $statusFilter !== '' || $searchQuery !== '' || $monthFilter !== (int)date('n') || $yearFilter !== (int)date('Y'));
                 ?>
                 <?php if ($isFiltered): ?>
-                    <a href="<?= APP_URL ?>/payments" class="btn btn-light border py-2 px-3 text-sm" title="Reset to Current Month">
+                    <a href="<?= APP_URL ?>/payments" class="btn btn-light border py-2 px-2 text-sm" title="Reset to Current Month">
                         <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                     </a>
                 <?php endif; ?>
@@ -199,7 +208,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
             <?php 
                 $monthParam = $monthFilter > 0 ? $monthFilter : 'all';
                 $yearParam  = $yearFilter > 0 ? $yearFilter : 'all';
-                $baseUrl = APP_URL . "/payments?client_id={$clientId}&month={$monthParam}&year={$yearParam}&search=" . urlencode($searchQuery);
+                $baseUrl = APP_URL . "/payments?client_id={$clientId}&currency=" . urlencode($currencyFilter) . "&month={$monthParam}&year={$yearParam}&search=" . urlencode($searchQuery);
                 $overdueCountPill = (int)$pdo->query("SELECT COUNT(*) FROM payment_schedules WHERE status = 'overdue' OR (status = 'pending' AND due_date < CURRENT_DATE)")->fetchColumn();
             ?>
             <a href="<?= $baseUrl ?>" class="btn btn-sm <?= empty($statusFilter) ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
@@ -208,7 +217,7 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
             <a href="<?= $baseUrl ?>&status=pending" class="btn btn-sm <?= $statusFilter === 'pending' ? 'btn-primary' : 'btn-light border' ?> rounded-pill text-xs font-semibold">
                 Pending
             </a>
-            <a href="<?= APP_URL ?>/payments?client_id=<?= $clientId ?>&month=all&year=all&search=<?= urlencode($searchQuery) ?>&status=overdue" class="btn btn-sm <?= $statusFilter === 'overdue' ? 'btn-danger' : 'btn-light border' ?> rounded-pill text-xs font-semibold d-inline-flex align-items-center gap-1.5">
+            <a href="<?= APP_URL ?>/payments?client_id=<?= $clientId ?>&currency=<?= urlencode($currencyFilter) ?>&month=all&year=all&search=<?= urlencode($searchQuery) ?>&status=overdue" class="btn btn-sm <?= $statusFilter === 'overdue' ? 'btn-danger' : 'btn-light border' ?> rounded-pill text-xs font-semibold d-inline-flex align-items-center gap-1.5">
                 Overdue
                 <?php if ($overdueCountPill > 0): ?>
                     <span class="badge <?= $statusFilter === 'overdue' ? 'bg-white text-danger' : 'bg-danger text-white' ?> rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;"><?= $overdueCountPill ?></span>
@@ -220,34 +229,34 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
         </div>
     </div>
 
-    <!-- Summary Metrics for Active Selection -->
+    <!-- Summary Metrics for Active Selection (Dual-Currency Supported) -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="kpi-card">
                 <span class="kpi-title">Filtered Installments Value</span>
-                <div class="kpi-value"><?= formatCurrency($filteredTotalValue, 'USD') ?></div>
+                <?= CurrencyEngine::renderDualKpiHtml($aggTotal, $currencyFilter) ?>
                 <span class="text-xs text-muted mt-1"><?= count($payments) ?> Record(s) Found</span>
             </div>
         </div>
         <div class="col-md-3">
             <div class="kpi-card">
                 <span class="kpi-title">Total Collected (Paid)</span>
-                <div class="kpi-value text-success"><?= formatCurrency($filteredPaidValue, 'USD') ?></div>
-                <span class="text-xs text-muted mt-1">Confirmed payments</span>
+                <?= CurrencyEngine::renderDualKpiHtml($aggPaid, $currencyFilter, 'text-success') ?>
+                <span class="text-xs text-muted mt-1"><?= count($paidPayments) ?> Confirmed payment(s)</span>
             </div>
         </div>
         <div class="col-md-3">
             <div class="kpi-card">
                 <span class="kpi-title">Total Pending</span>
-                <div class="kpi-value text-primary"><?= formatCurrency($filteredPendingVal, 'USD') ?></div>
-                <span class="text-xs text-muted mt-1">Upcoming due dates</span>
+                <?= CurrencyEngine::renderDualKpiHtml($aggPending, $currencyFilter, 'text-primary') ?>
+                <span class="text-xs text-muted mt-1"><?= count($pendingPaymentsList) ?> Upcoming due installment(s)</span>
             </div>
         </div>
         <div class="col-md-3">
             <div class="kpi-card">
                 <span class="kpi-title">Total Overdue</span>
-                <div class="kpi-value text-danger"><?= formatCurrency($filteredOverdueVal, 'USD') ?></div>
-                <span class="text-xs text-muted mt-1">Requires immediate follow-up</span>
+                <?= CurrencyEngine::renderDualKpiHtml($aggOverdue, $currencyFilter, 'text-danger') ?>
+                <span class="text-xs text-muted mt-1"><?= count($overduePaymentsList) ?> Requires immediate follow-up</span>
             </div>
         </div>
     </div>
@@ -257,10 +266,13 @@ $yearsList = range((int)date('Y') - 1, (int)date('Y') + 3);
         <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
             <h5 class="fw-bold h6 mb-0">
                 Installment Schedule Results 
+                <?php if (!empty($currencyFilter) && $currencyFilter !== 'ALL'): ?>
+                    <span class="badge bg-dark text-white ms-2"><?= $currencyFilter ?></span>
+                <?php endif; ?>
                 <?php if ($monthFilter): ?>
-                    <span class="badge badge-info ms-2"><?= $monthsList[$monthFilter] ?> <?= $yearFilter ?: '' ?></span>
+                    <span class="badge badge-info ms-1"><?= $monthsList[$monthFilter] ?> <?= $yearFilter ?: '' ?></span>
                 <?php else: ?>
-                    <span class="badge badge-secondary ms-2">All Months <?= $yearFilter ?: '' ?></span>
+                    <span class="badge badge-secondary ms-1">All Months <?= $yearFilter ?: '' ?></span>
                 <?php endif; ?>
             </h5>
             <span class="text-xs text-muted">Showing <?= count($payments) ?> installment row(s)</span>

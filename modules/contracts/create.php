@@ -219,7 +219,7 @@ $accountManagers = $pdo->query("SELECT id, CONCAT(first_name, ' ', last_name) as
                             </div>
 
                             <div class="d-flex justify-content-between text-xs text-muted pt-2.5 border-top px-1">
-                                <span>Local Equivalent (NGN):</span>
+                                <span id="convertedCurrencyLabel">Local Equivalent (NGN):</span>
                                 <strong id="calcNgnEquivalent" class="text-success font-mono font-bold">₦0.00</strong>
                             </div>
                         </div>
@@ -250,7 +250,9 @@ function addContractRow() {
 
     let options = '<option value="">-- Select Product --</option>';
     productsCatalog.forEach(p => {
-        options += `<option value="${p.id}" data-cost="${p.default_unit_cost}">${p.vendor_name} - ${p.product_name} ($${parseFloat(p.default_unit_cost).toFixed(2)})</option>`;
+        const pCurr = (p.currency === 'NGN') ? '₦' : ((p.currency === 'EUR') ? '€' : ((p.currency === 'GBP') ? '£' : '$'));
+        const pCost = parseFloat(p.default_unit_cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        options += `<option value="${p.id}" data-cost="${p.default_unit_cost}" data-currency="${p.currency || 'USD'}">${p.vendor_name} - ${p.product_name} (${pCurr}${pCost})</option>`;
     });
 
     tr.innerHTML = `
@@ -282,11 +284,24 @@ function removeContractRow(btn) {
 
 function onProductSelect(selectEl) {
     const selectedOption = selectEl.options[selectEl.selectedIndex];
-    const defaultCost = selectedOption.getAttribute('data-cost');
+    const defaultCost = parseFloat(selectedOption.getAttribute('data-cost')) || 0;
+    const prodCurrency = selectedOption.getAttribute('data-currency') || 'USD';
+    const contractCurrency = document.getElementById('currency_select').value || 'USD';
+    const rate = parseFloat(document.getElementById('exchange_rate').value) || 1550.0;
+
     const tr = selectEl.closest('tr');
     const priceInput = tr.querySelector('.unit-price-input');
-    if (defaultCost && priceInput) {
-        priceInput.value = parseFloat(defaultCost).toFixed(2);
+    
+    if (priceInput) {
+        if (prodCurrency === contractCurrency) {
+            priceInput.value = defaultCost.toFixed(2);
+        } else if (prodCurrency === 'USD' && contractCurrency === 'NGN') {
+            priceInput.value = (defaultCost * rate).toFixed(2);
+        } else if (prodCurrency === 'NGN' && contractCurrency === 'USD') {
+            priceInput.value = (rate > 0 ? (defaultCost / rate) : defaultCost).toFixed(2);
+        } else {
+            priceInput.value = defaultCost.toFixed(2);
+        }
     }
     recalculateContractSummary();
 }
@@ -298,7 +313,7 @@ function recalculateContractSummary() {
 
     const rows = document.querySelectorAll('#itemsTableBody tr');
     const curr = document.getElementById('currency_select').value || 'USD';
-    const currSymbol = (curr === 'NGN') ? '₦' : (curr === 'EUR') ? '€' : (curr === 'GBP') ? '£' : '$';
+    const currSymbol = (curr === 'NGN') ? '₦' : ((curr === 'EUR') ? '€' : ((curr === 'GBP') ? '£' : '$'));
 
     rows.forEach(tr => {
         const prodSelect = tr.querySelector('.prod-select');
@@ -338,9 +353,20 @@ function recalculateContractSummary() {
 
     const perInstallment = (installmentsCount > 0) ? (grandTotal / installmentsCount) : grandTotal;
 
-    // Exchange Rate Conversion (Local Equivalent)
+    // Exchange Rate Conversion (Bi-directional Equivalent)
     const rate = parseFloat(document.getElementById('exchange_rate').value) || 1550.0;
-    const ngnTotal = grandTotal * rate;
+    let convertedLabel = 'Local Equivalent (NGN):';
+    let convertedText = '₦0.00';
+
+    if (curr === 'NGN') {
+        convertedLabel = 'Base Equivalent (USD):';
+        const usdVal = rate > 0 ? (grandTotal / rate) : 0;
+        convertedText = '$' + usdVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    } else {
+        convertedLabel = 'Local Equivalent (NGN):';
+        const ngnVal = grandTotal * rate;
+        convertedText = '₦' + ngnVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     // Update Summary UI Elements
     document.getElementById('summaryCycleBadge').innerText = cycleLabel;
@@ -350,7 +376,9 @@ function recalculateContractSummary() {
     document.getElementById('calcTotalSeats').innerText = totalSeats + ' Seat(s)';
     document.getElementById('calcTotalProducts').innerText = productCount + ' Product Line(s)';
 
-    document.getElementById('calcNgnEquivalent').innerText = '₦' + ngnTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const labelEl = document.getElementById('convertedCurrencyLabel');
+    if (labelEl) labelEl.innerText = convertedLabel;
+    document.getElementById('calcNgnEquivalent').innerText = convertedText;
 }
 
 // Initialize on load

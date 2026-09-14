@@ -57,7 +57,8 @@ INSERT INTO `vendors` (`id`, `vendor_name`, `website`, `support_email`, `status`
 (1, 'Microsoft Corporation', 'https://microsoft.com', 'support@microsoft.com', 'active'),
 (2, 'Adobe Inc.', 'https://adobe.com', 'support@adobe.com', 'active'),
 (3, 'Amazon Web Services', 'https://aws.amazon.com', 'support@aws.com', 'active'),
-(4, 'Zoom Video Communications', 'https://zoom.us', 'support@zoom.us', 'active');
+(4, 'Zoom Video Communications', 'https://zoom.us', 'support@zoom.us', 'active'),
+(5, 'Paystack Payments Limited', 'https://paystack.com', 'support@paystack.com', 'active');
 
 -- 6. Default Products
 INSERT INTO `products` (`id`, `vendor_id`, `product_name`, `pricing_model`, `default_unit_cost`, `currency`) VALUES
@@ -67,13 +68,15 @@ INSERT INTO `products` (`id`, `vendor_id`, `product_name`, `pricing_model`, `def
 (4, 2, 'Adobe Creative Cloud All Apps', 'per_seat', 55.0000, 'USD'),
 (5, 2, 'Acrobat Pro for Teams', 'per_seat', 15.0000, 'USD'),
 (6, 3, 'AWS Production Server (c5.xlarge)', 'flat_rate', 450.0000, 'USD'),
-(7, 4, 'Zoom One Pro', 'per_seat', 14.9900, 'USD');
+(7, 4, 'Zoom One Pro', 'per_seat', 14.9900, 'USD'),
+(8, 5, 'Paystack Enterprise Gateway', 'flat_rate', 300000.0000, 'NGN');
 
 -- 7. Sample Clients
 INSERT INTO `clients` (`id`, `company_name`, `account_manager_id`, `primary_contact_name`, `primary_contact_email`, `primary_contact_phone`, `status`) VALUES
 (1, 'Baye Business Solutions', 2, 'Adekunle Quadri', 'adekunle@bayebusiness.com', '+2348012345678', 'active'),
 (2, 'SoftPlus InfoTech', 2, 'Info Team', 'info@softplusinfotechsolutions.com', '+2348023456789', 'active'),
-(3, 'Alterverse Group', 2, 'Operations Manager', 'info@alterversegroup.com', '+2348034567890', 'active');
+(3, 'Alterverse Group', 2, 'Operations Manager', 'info@alterversegroup.com', '+2348034567890', 'active'),
+(4, 'Zircon Energy & Logistics Ltd', 1, 'Chinedu Okafor', 'c.okafor@zirconenergy.ng', '+2348031234567', 'active');
 
 -- 8. Sample App Settings
 INSERT INTO `app_settings` (`setting_key`, `setting_value`) VALUES
